@@ -181,25 +181,40 @@ export const GitHubPagesModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </div>
 
           {/* Quick Setup Instructions */}
-          <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/60">
-            <h4 className="text-xs font-bold text-amber-900 flex items-center gap-1.5 mb-2">
-              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-              วิธีเปิดใช้งานบน GitHub Pages (ทำเพียง 1 ครั้ง):
-            </h4>
-            <ol className="text-xs text-amber-900/90 space-y-1.5 list-decimal pl-4">
-              <li>
-                ดาวน์โหลดโค้ดโปรเจกต์นี้ (Export ZIP หรือ Git Push ไปยัง GitHub ของคุณ)
-              </li>
-              <li>
-                ใน GitHub ไปที่แท็บ <strong>Settings</strong> &gt; เมนูด้านซ้าย <strong>Pages</strong>
-              </li>
-              <li>
-                ตรงส่วน <strong>Build and deployment &gt; Source</strong> ให้เลือกเป็น <strong>GitHub Actions</strong> (ระบบได้จัดเตรียมไฟล์อัตโนมัติไว้ให้เรียบร้อยแล้ว)
-              </li>
-              <li>
-                รอประมาณ 1 นาที เว็บจะออนไลน์บนลิงก์ GitHub Pages ทันที!
-              </li>
-            </ol>
+          <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200/80 space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="text-amber-700 font-bold text-xs flex items-center gap-1">
+                ⚠️ หากคลิกแล้วขึ้น "404 Not Found" บน GitHub:
+              </span>
+            </div>
+            <p className="text-xs text-amber-900/90 leading-relaxed">
+              นั่นหมายถึงโค้ดยังไม่ได้ถูกส่งขึ้นไปยัง Repository ของคุณ หรือยังไม่ได้กดเปิดใช้งาน Pages ใน GitHub โดยคุณสามารถเปิดใช้งานได้ง่ายๆ 2 วิธี:
+            </p>
+
+            {/* Method A: /docs folder (Simplest) */}
+            <div className="p-3 bg-white rounded-xl border border-amber-200">
+              <span className="inline-block px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800 mb-1.5">
+                วิธีที่ 1: แนะนำ ง่ายที่สุด (มีโฟลเดอร์ /docs เตรียมไว้ให้แล้ว)
+              </span>
+              <ol className="text-xs text-slate-700 space-y-1 list-decimal pl-4">
+                <li>Export โค้ดนี้ขึ้น GitHub Repository ของคุณ</li>
+                <li>ไปที่หน้า GitHub &gt; <strong>Settings</strong> &gt; เมนูซ้าย <strong>Pages</strong></li>
+                <li>ตรง <strong>Build and deployment &gt; Source</strong> เลือก <strong>Deploy from a branch</strong></li>
+                <li>Branch เลือก <strong>main</strong> และโฟลเดอร์เลือก <strong>/docs</strong> แล้วกด <strong>Save</strong></li>
+              </ol>
+            </div>
+
+            {/* Method B: GitHub Actions */}
+            <div className="p-3 bg-white rounded-xl border border-amber-200">
+              <span className="inline-block px-2 py-0.5 rounded text-[11px] font-bold bg-blue-100 text-blue-800 mb-1.5">
+                วิธีที่ 2: ใช้ GitHub Actions อัตโนมัติ
+              </span>
+              <ol className="text-xs text-slate-700 space-y-1 list-decimal pl-4">
+                <li>ไปที่ GitHub &gt; <strong>Settings</strong> &gt; <strong>Pages</strong></li>
+                <li>ตรง <strong>Source</strong> เปลี่ยนเป็น <strong>GitHub Actions</strong></li>
+                <li>ระบบจะรันไฟล์ <code>.github/workflows/deploy.yml</code> ที่เตรียมไว้ให้และออนไลน์ให้อัตโนมัติ</li>
+              </ol>
+            </div>
           </div>
         </div>
 
