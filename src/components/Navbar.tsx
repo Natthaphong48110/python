@@ -7,7 +7,8 @@ import {
   Gamepad2,
   Trophy,
   User,
-  Radio
+  Radio,
+  Globe
 } from 'lucide-react';
 import { ActiveTab, StudentProfile } from '../types';
 
@@ -17,6 +18,7 @@ interface Props {
   profile: StudentProfile | null;
   onEditProfile: () => void;
   onOpenProfileDetail?: () => void;
+  onOpenGitHubPagesModal?: () => void;
   totalPoints: number;
   isOnline: boolean;
 }
@@ -27,6 +29,7 @@ export const Navbar: React.FC<Props> = ({
   profile,
   onEditProfile,
   onOpenProfileDetail,
+  onOpenGitHubPagesModal,
   totalPoints,
   isOnline
 }) => {
@@ -84,7 +87,19 @@ export const Navbar: React.FC<Props> = ({
           </nav>
 
           {/* Student Status & Profile Pill */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
+            {/* Direct Web & GitHub Pages Link Button */}
+            {onOpenGitHubPagesModal && (
+              <button
+                onClick={onOpenGitHubPagesModal}
+                title="ลิงก์หน้าเว็บ & GitHub Pages"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-slate-200/90 bg-white hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 text-slate-700 text-xs font-semibold shadow-2xs transition"
+              >
+                <Globe className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="hidden sm:inline">ลิงก์หน้าเว็บ</span>
+              </button>
+            )}
+
             {/* Live Status */}
             <div
               title={isOnline ? 'เชื่อมต่อระบบแล้ว' : 'กำลังเชื่อมต่อ...'}

@@ -7,6 +7,7 @@ import { LessonsView } from './components/LessonsView';
 import { QuizView } from './components/QuizView';
 import { MiniGamesView } from './components/MiniGamesView';
 import { LeaderboardView } from './components/LeaderboardView';
+import { GitHubPagesModal } from './components/GitHubPagesModal';
 import { PRE_TEST_QUESTIONS, POST_TEST_QUESTIONS } from './data/quizQuestions';
 import {
   StudentProfile,
@@ -25,12 +26,13 @@ import {
   resetAllStudents,
   subscribeToLeaderboardStream
 } from './services/api';
-import { Sparkles, CheckCircle } from 'lucide-react';
+import { Sparkles, CheckCircle, Globe } from 'lucide-react';
 
 export default function App() {
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isProfileDetailModalOpen, setIsProfileDetailModalOpen] = useState(false);
+  const [isGitHubPagesModalOpen, setIsGitHubPagesModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
 
   const [leaderboard, setLeaderboard] = useState<StudentLeaderboardEntry[]>([]);
@@ -278,6 +280,7 @@ export default function App() {
         profile={profile}
         onEditProfile={() => setIsProfileModalOpen(true)}
         onOpenProfileDetail={() => setIsProfileDetailModalOpen(true)}
+        onOpenGitHubPagesModal={() => setIsGitHubPagesModalOpen(true)}
         totalPoints={currentStudentRecord?.totalPoints ?? 0}
         isOnline={isLiveConnected}
       />
@@ -354,8 +357,33 @@ export default function App() {
             <span className="font-semibold text-slate-700">Python ม.4: ตัวแปรและชนิดข้อมูล</span>
             <span>• รายวิชาคอมพิวเตอร์และขั้นตอนวิธี</span>
           </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsGitHubPagesModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 text-xs font-medium border border-slate-200/80 transition cursor-pointer shadow-2xs"
+            >
+              <Globe className="w-3.5 h-3.5 text-emerald-600" />
+              <span>ลิงก์หน้าเว็บ & GitHub Pages</span>
+            </button>
+            <a
+              href="https://ais-pre-6jfnroh4nma7f7l6c6xsxm-929164789789.asia-southeast1.run.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition"
+            >
+              <span>เปิดหน้าเว็บแยก</span>
+              <span className="text-[10px]">↗</span>
+            </a>
+          </div>
         </div>
       </footer>
+
+      {/* GitHub Pages & Direct Web Link Modal */}
+      <GitHubPagesModal
+        isOpen={isGitHubPagesModalOpen}
+        onClose={() => setIsGitHubPagesModalOpen(false)}
+      />
 
       {/* Profile Registration / Edit Modal */}
       <StudentProfileModal
