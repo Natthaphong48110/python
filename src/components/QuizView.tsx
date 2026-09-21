@@ -82,16 +82,8 @@ export const QuizView: React.FC<Props> = ({
     } else {
       // Quiz finished
       setIsCompleted(true);
-      const finalScore = score + (currentQ.options.find(o => o.id === selectedOptionId)?.isCorrect ? 1 : 0);
-      const allAnswers = [
-        ...userAnswers,
-        {
-          questionId: currentQ.id,
-          selectedId: selectedOptionId || '',
-          isCorrect: !!currentQ.options.find(o => o.id === selectedOptionId)?.isCorrect
-        }
-      ];
-      onFinishQuiz(type, finalScore, allAnswers);
+      const finalScore = userAnswers.filter((a) => a.isCorrect).length;
+      onFinishQuiz(type, finalScore, userAnswers);
     }
   };
 
@@ -106,8 +98,9 @@ export const QuizView: React.FC<Props> = ({
 
   // Completed Screen
   if (isCompleted) {
-    const percentage = Math.round((score / questions.length) * 100);
-    const isPass = score >= 6;
+    const finalCalculatedScore = userAnswers.filter((a) => a.isCorrect).length;
+    const percentage = Math.round((finalCalculatedScore / questions.length) * 100);
+    const isPass = finalCalculatedScore >= 6;
 
     return (
       <div className="max-w-3xl mx-auto space-y-6 animate-in fade-in">
@@ -122,7 +115,7 @@ export const QuizView: React.FC<Props> = ({
           </span>
 
           <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mt-2">
-            {profile?.name ? `${profile.name} ทำได้ ${score} / ${questions.length} คะแนน` : `ได้ ${score} / ${questions.length} คะแนน`}
+            {profile?.name ? `${profile.name} ทำได้ ${finalCalculatedScore} / ${questions.length} คะแนน` : `ได้ ${finalCalculatedScore} / ${questions.length} คะแนน`}
           </h2>
 
           <div className="mt-3 flex items-center justify-center gap-2">

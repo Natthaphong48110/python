@@ -12,9 +12,11 @@ import {
   AlertTriangle,
   RotateCcw,
   Check,
-  X
+  X,
+  Download
 } from 'lucide-react';
 import { StudentLeaderboardEntry, StudentProfile } from '../types';
+import { exportLeaderboardJson } from '../services/api';
 
 interface Props {
   leaderboard: StudentLeaderboardEntry[];
@@ -41,6 +43,17 @@ export const LeaderboardView: React.FC<Props> = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const [showResetAllModal, setShowResetAllModal] = useState(false);
   const [isResettingAll, setIsResettingAll] = useState(false);
+
+  const handleExportJson = () => {
+    const jsonStr = exportLeaderboardJson();
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `python_m4_leaderboard_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   // Extract unique classrooms
   const availableClassrooms = Array.from(
@@ -86,19 +99,27 @@ export const LeaderboardView: React.FC<Props> = ({
       <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 mb-2">
-              <Trophy className="w-3.5 h-3.5 text-emerald-600" />
-              <span>กระดานจัดอันดับ (Leaderboard)</span>
-            </div>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
-              กระดานจัดอันดับ
+              กระดานการจัดอันดับ
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
-              โรงเรียนมัธยมวาริชภูมิ ระดับชั้นมัธยมศึกษาปีที่4
+              โรงเรียนมัธยมวาริชภูมิ ระดับชั้นมัธยมศึกษาปีที่ 4
             </p>
           </div>
 
           <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+            {/* Export Leaderboard JSON */}
+            {leaderboard.length > 0 && (
+              <button
+                onClick={handleExportJson}
+                className="px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer"
+                title="ดาวน์โหลดไฟล์ข้อมูลคะแนนนักเรียนทั้งหมดเป็น JSON"
+              >
+                <Download className="w-3.5 h-3.5 text-slate-600" />
+                <span>ส่งออกคะแนน</span>
+              </button>
+            )}
+
             <button
               onClick={onRefresh}
               disabled={isLoading}
@@ -139,12 +160,17 @@ export const LeaderboardView: React.FC<Props> = ({
             <select
               value={selectedClassroom}
               onChange={(e) => setSelectedClassroom(e.target.value)}
-              className="w-full py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-emerald-500 outline-none text-xs sm:text-sm text-slate-800"
+              className="w-full py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-emerald-500 outline-none text-xs sm:text-sm text-slate-800 font-medium"
             >
               <option value="all">ห้องเรียนทั้งหมด (ทุกห้อง)</option>
-              {availableClassrooms.map((c) => (
-                <option key={c} value={c}>เฉพาะห้อง {c}</option>
-              ))}
+              <option value="ม.4/1">เฉพาะห้อง ม.4/1</option>
+              <option value="ม.4/2">เฉพาะห้อง ม.4/2</option>
+              <option value="ม.4/3">เฉพาะห้อง ม.4/3</option>
+              {availableClassrooms
+                .filter((c) => !['ม.4/1', 'ม.4/2', 'ม.4/3'].includes(c))
+                .map((c) => (
+                  <option key={c} value={c}>เฉพาะห้อง {c}</option>
+                ))}
             </select>
           </div>
         </div>

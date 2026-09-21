@@ -1,0 +1,31 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    function isValidStudent(data) {
+      return data.keys().hasAll(['id', 'studentName', 'classroom', 'studentNo'])
+        && data.id is string
+        && data.studentName is string
+        && data.studentName.size() <= 100
+        && data.classroom is string
+        && data.studentNo is string
+        && (!('totalPoints' in data) || data.totalPoints is number)
+        && (!('preTestScore' in data) || data.preTestScore == null || data.preTestScore is number)
+        && (!('postTestScore' in data) || data.postTestScore == null || data.postTestScore is number)
+        && (!('gainRate' in data) || data.gainRate == null || data.gainRate is number)
+        && (!('sorterHighScore' in data) || data.sorterHighScore is number)
+        && (!('detectiveHighScore' in data) || data.detectiveHighScore is number)
+        && (!('labHighScore' in data) || data.labHighScore is number)
+        && (!('badges' in data) || data.badges is list)
+        && (!('lastActive' in data) || data.lastActive is string)
+        && (!('totalQuizzesTaken' in data) || data.totalQuizzesTaken is number);
+    }
+
+    match /students/{studentId} {
+      allow read: if true;
+      allow create, update: if isValidStudent(request.resource.data);
+      allow delete: if true;
+    }
+  }
+}

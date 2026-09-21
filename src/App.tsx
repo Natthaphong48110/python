@@ -7,7 +7,6 @@ import { LessonsView } from './components/LessonsView';
 import { QuizView } from './components/QuizView';
 import { MiniGamesView } from './components/MiniGamesView';
 import { LeaderboardView } from './components/LeaderboardView';
-import { GitHubPagesModal } from './components/GitHubPagesModal';
 import { PRE_TEST_QUESTIONS, POST_TEST_QUESTIONS } from './data/quizQuestions';
 import {
   StudentProfile,
@@ -26,13 +25,12 @@ import {
   resetAllStudents,
   subscribeToLeaderboardStream
 } from './services/api';
-import { Sparkles, CheckCircle, Globe } from 'lucide-react';
+import { Sparkles, CheckCircle } from 'lucide-react';
 
 export default function App() {
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isProfileDetailModalOpen, setIsProfileDetailModalOpen] = useState(false);
-  const [isGitHubPagesModalOpen, setIsGitHubPagesModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
 
   const [leaderboard, setLeaderboard] = useState<StudentLeaderboardEntry[]>([]);
@@ -42,6 +40,7 @@ export default function App() {
 
   // Toast notification
   const [toastMessage, setToastMessage] = useState<{ title: string; desc: string } | null>(null);
+  const [pendingScoreAction, setPendingScoreAction] = useState<((p: StudentProfile) => void) | null>(null);
 
   const showToast = (title: string, desc: string) => {
     setToastMessage({ title, desc });
@@ -120,27 +119,29 @@ export default function App() {
       studentName: newProfile.name,
       classroom: newProfile.classroom,
       studentNo: newProfile.studentNo,
-      addedPoints: 50, // Welcome bonus XP
+      addedPoints: 0, // Starts with 0 points
       badge: '🎓 ผู้เรียนใหม่ (Python Recruit)'
     });
 
     if (res.success && res.student) {
-      showToast('ยินดีต้อนรับสู่ห้องเรียน!', `ลงทะเบียน ${newProfile.name} (${newProfile.classroom}) เรียบร้อยแล้ว (+50 XP)`);
+      showToast('ยินดีต้อนรับสู่ห้องเรียน!', `ลงทะเบียน ${newProfile.name} (${newProfile.classroom}) เรียบร้อยแล้ว (คะแนนสะสมเริ่มต้น 0 คะแนน)`);
       loadLeaderboardData();
+    }
+
+    // Process any pending score from mini-game or quiz
+    if (pendingScoreAction) {
+      const action = pendingScoreAction;
+      setPendingScoreAction(null);
+      setTimeout(() => action(newProfile), 250);
     }
   };
 
-  // Handle Quiz Finish (Pre-Test / Post-Test)
-  const handleFinishQuiz = async (
+  // Helper to submit quiz score
+  const submitQuizScoreForStudent = async (
+    targetProfile: StudentProfile,
     quizType: QuizType,
-    score: number,
-    answers: { questionId: number; isCorrect: boolean }[]
+    score: number
   ) => {
-    if (!profile) {
-      setIsProfileModalOpen(true);
-      return;
-    }
-
     const isPre = quizType === 'pre_test';
     const pointsEarned = score * 20 + 50; // 20 pts per correct answer + 50 completion bonus
     let earnedBadge: string | undefined;
@@ -158,9 +159,9 @@ export default function App() {
     }
 
     const payload: any = {
-      studentName: profile.name,
-      classroom: profile.classroom,
-      studentNo: profile.studentNo,
+      studentName: targetProfile.name,
+      classroom: targetProfile.classroom,
+      studentNo: targetProfile.studentNo,
       addedPoints: pointsEarned,
       badge: earnedBadge
     };
@@ -181,22 +182,36 @@ export default function App() {
     }
   };
 
-  // Handle Mini-Game Score Saving
-  const handleSaveMiniGameScore = async (
+  // Handle Quiz Finish (Pre-Test / Post-Test)
+  const handleFinishQuiz = async (
+    quizType: QuizType,
+    score: number,
+    answers: { questionId: number; isCorrect: boolean }[]
+  ) => {
+    if (!profile) {
+      setPendingScoreAction(() => (p: StudentProfile) => {
+        submitQuizScoreForStudent(p, quizType, score);
+      });
+      setIsProfileModalOpen(true);
+      showToast('กรุณาระบุชื่อผู้เรียน', 'กรอกชื่อและห้องเรียนเพื่อบันทึกคะแนนแบบทดสอบ');
+      return;
+    }
+
+    await submitQuizScoreForStudent(profile, quizType, score);
+  };
+
+  // Helper to submit mini-game score
+  const submitMiniGameScoreForStudent = async (
+    targetProfile: StudentProfile,
     gameKey: 'sorter' | 'detective' | 'lab',
     score: number,
     points: number,
     badge?: string
   ) => {
-    if (!profile) {
-      setIsProfileModalOpen(true);
-      return;
-    }
-
     const payload: any = {
-      studentName: profile.name,
-      classroom: profile.classroom,
-      studentNo: profile.studentNo,
+      studentName: targetProfile.name,
+      classroom: targetProfile.classroom,
+      studentNo: targetProfile.studentNo,
       addedPoints: points,
       badge
     };
@@ -210,6 +225,25 @@ export default function App() {
       showToast('บันทึกคะแนนเกมย่อยแล้ว!', `คะแนนในเกม: ${score} (+${points} XP) อัปเดตลงกระดานคะแนนแล้ว`);
       loadLeaderboardData();
     }
+  };
+
+  // Handle Mini-Game Score Saving
+  const handleSaveMiniGameScore = async (
+    gameKey: 'sorter' | 'detective' | 'lab',
+    score: number,
+    points: number,
+    badge?: string
+  ) => {
+    if (!profile) {
+      setPendingScoreAction(() => (p: StudentProfile) => {
+        submitMiniGameScoreForStudent(p, gameKey, score, points, badge);
+      });
+      setIsProfileModalOpen(true);
+      showToast('กรุณาระบุชื่อผู้เรียน', 'กรอกชื่อและห้องเรียนเพื่อบันทึกคะแนนเกมย่อย');
+      return;
+    }
+
+    await submitMiniGameScoreForStudent(profile, gameKey, score, points, badge);
   };
 
   // Handle Quick Check Points from Lessons
@@ -280,7 +314,6 @@ export default function App() {
         profile={profile}
         onEditProfile={() => setIsProfileModalOpen(true)}
         onOpenProfileDetail={() => setIsProfileDetailModalOpen(true)}
-        onOpenGitHubPagesModal={() => setIsGitHubPagesModalOpen(true)}
         totalPoints={currentStudentRecord?.totalPoints ?? 0}
         isOnline={isLiveConnected}
       />
@@ -358,32 +391,11 @@ export default function App() {
             <span>• รายวิชาคอมพิวเตอร์และขั้นตอนวิธี</span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsGitHubPagesModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 text-xs font-medium border border-slate-200/80 transition cursor-pointer shadow-2xs"
-            >
-              <Globe className="w-3.5 h-3.5 text-emerald-600" />
-              <span>ลิงก์หน้าเว็บ & GitHub Pages</span>
-            </button>
-            <a
-              href="https://ais-pre-6jfnroh4nma7f7l6c6xsxm-929164789789.asia-southeast1.run.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition"
-            >
-              <span>เปิดหน้าเว็บแยก</span>
-              <span className="text-[10px]">↗</span>
-            </a>
+          <div className="text-slate-400 text-[11px]">
+            โรงเรียนมัธยมวาริชภูมิ
           </div>
         </div>
       </footer>
-
-      {/* GitHub Pages & Direct Web Link Modal */}
-      <GitHubPagesModal
-        isOpen={isGitHubPagesModalOpen}
-        onClose={() => setIsGitHubPagesModalOpen(false)}
-      />
 
       {/* Profile Registration / Edit Modal */}
       <StudentProfileModal

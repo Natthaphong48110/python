@@ -32,7 +32,7 @@ export const StudentProfileModal: React.FC<Props> = ({
     e.preventDefault();
     const cleanName = name.trim();
     if (!cleanName) {
-      setError('กรุณากรอกชื่อ-นามสกุล หรือชื่อเล่นของคุณ');
+      setError('กรุณากรอกชื่อจริง-นามสกุลของคุณ');
       return;
     }
     if (cleanName.length < 2) {
@@ -75,14 +75,14 @@ export const StudentProfileModal: React.FC<Props> = ({
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
-              <User className="w-4 h-4 text-emerald-600" /> ชื่อ-นามสกุล หรือ ชื่อเล่น (ภาษาไทย)
+              <User className="w-4 h-4 text-emerald-600" /> ชื่อจริง - นามสกุล
             </label>
             <input
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="เช่น นายสมชาย ใจดี หรือ น้ำหวาน"
+              placeholder="เช่น นายสมชาย ใจดี"
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none text-sm text-slate-800 transition"
             />
           </div>
@@ -105,7 +105,7 @@ export const StudentProfileModal: React.FC<Props> = ({
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                <Hash className="w-4 h-4 text-emerald-600" /> เลขที่ (ถ้ามี)
+                <Hash className="w-4 h-4 text-emerald-600" /> เลขที่
               </label>
               <input
                 type="text"

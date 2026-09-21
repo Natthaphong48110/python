@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Gamepad2,
   Boxes,
@@ -42,6 +42,12 @@ export const MiniGamesView: React.FC<Props> = ({ profile, onSaveMiniGameScore })
   const [sorterFeedback, setSorterFeedback] = useState<{ isCorrect: boolean; explanation: string } | null>(null);
   const [sorterFinished, setSorterFinished] = useState(false);
 
+  // Stable refs for timer loop to prevent interval resets on score changes
+  const sorterScoreRef = useRef(sorterScore);
+  sorterScoreRef.current = sorterScore;
+  const onSaveRef = useRef(onSaveMiniGameScore);
+  onSaveRef.current = onSaveMiniGameScore;
+
   // ---------- Game 2: Detective State ----------
   const [detectiveIndex, setDetectiveIndex] = useState(0);
   const [detectiveScore, setDetectiveScore] = useState(0);
@@ -54,26 +60,32 @@ export const MiniGamesView: React.FC<Props> = ({ profile, onSaveMiniGameScore })
   const [labFeedback, setLabFeedback] = useState<{ isCorrect: boolean; explanation: string } | null>(null);
   const [labFinished, setLabFinished] = useState(false);
 
-  // Timer loop for Sorter game
+  // Dedicated, drift-free timer loop for Sorter game
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (sorterIsPlaying && sorterTimer > 0) {
-      interval = setInterval(() => {
-        setSorterTimer((prev) => prev - 1);
-      }, 1000);
-    } else if (sorterIsPlaying && sorterTimer === 0) {
-      setSorterIsPlaying(false);
-      setSorterFinished(true);
-      const earnedXP = sorterScore * 5;
-      const badge = sorterScore >= 500 ? '⚡ เซียนแยกชนิดข้อมูล (Sorter Master)' : undefined;
-      onSaveMiniGameScore('sorter', sorterScore, earnedXP, badge);
-    }
+    if (!sorterIsPlaying) return;
+
+    const interval = setInterval(() => {
+      setSorterTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setSorterIsPlaying(false);
+          setSorterFinished(true);
+          const finalScore = sorterScoreRef.current;
+          const earnedXP = Math.round(finalScore);
+          const badge = finalScore >= 500 ? '⚡ เซียนแยกชนิดข้อมูล (Sorter Master)' : undefined;
+          onSaveRef.current('sorter', finalScore, earnedXP, badge);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
     return () => clearInterval(interval);
-  }, [sorterIsPlaying, sorterTimer, sorterScore, onSaveMiniGameScore]);
+  }, [sorterIsPlaying]);
 
   // Handle Sorter Answer
   const handleSorterAnswer = (chosenType: 'int' | 'float' | 'str' | 'bool') => {
-    if (!sorterIsPlaying) return;
+    if (!sorterIsPlaying || sorterFeedback !== null) return;
     const currentItem = SORTER_ITEMS[sorterIndex % SORTER_ITEMS.length];
     const isCorrect = currentItem.expectedType === chosenType;
 
@@ -91,7 +103,7 @@ export const MiniGamesView: React.FC<Props> = ({ profile, onSaveMiniGameScore })
     setTimeout(() => {
       setSorterFeedback(null);
       setSorterIndex((prev) => prev + 1);
-    }, 700);
+    }, 600);
   };
 
   const startSorterGame = () => {

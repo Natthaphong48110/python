@@ -382,7 +382,7 @@ export const DashboardView: React.FC<Props> = ({
                 <BarChart3 className="w-4 h-4 text-emerald-600" /> สถิติภาพรวมของชั้นเรียน
               </h3>
               <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold">
-                ข้อมูลจริง
+                ข้อมูล
               </span>
             </div>
 

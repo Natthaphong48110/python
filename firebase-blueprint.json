@@ -1,0 +1,74 @@
+{
+  "entities": {
+    "student": {
+      "title": "Student Leaderboard Entry",
+      "description": "Information about a student, their quiz scores, game high scores, and badges",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the student e.g. m41_01_สมชาย"
+        },
+        "studentName": {
+          "type": "string",
+          "description": "Full name of the student"
+        },
+        "classroom": {
+          "type": "string",
+          "description": "Classroom e.g. ม.4/1, ม.4/2, ม.4/3"
+        },
+        "studentNo": {
+          "type": "string",
+          "description": "Student roll number"
+        },
+        "totalPoints": {
+          "type": "number",
+          "description": "Total accumulated points"
+        },
+        "preTestScore": {
+          "type": "number",
+          "description": "Pre-test score out of 10"
+        },
+        "postTestScore": {
+          "type": "number",
+          "description": "Post-test score out of 10"
+        },
+        "gainRate": {
+          "type": "number",
+          "description": "Relative gain score percentage"
+        },
+        "sorterHighScore": {
+          "type": "number",
+          "description": "High score for Data Type Sorter game"
+        },
+        "detectiveHighScore": {
+          "type": "number",
+          "description": "High score for Code Detective game"
+        },
+        "labHighScore": {
+          "type": "number",
+          "description": "High score for Python Lab game"
+        },
+        "badges": {
+          "type": "array",
+          "description": "Earned badge titles"
+        },
+        "lastActive": {
+          "type": "string",
+          "description": "ISO timestamp of last activity"
+        },
+        "totalQuizzesTaken": {
+          "type": "number",
+          "description": "Total quizzes submitted"
+        }
+      },
+      "required": ["id", "studentName", "classroom", "studentNo"]
+    }
+  },
+  "firestore": {
+    "/students/{studentId}": {
+      "schema": "student",
+      "description": "Real-time student leaderboard collection accessible across all devices"
+    }
+  }
+}
